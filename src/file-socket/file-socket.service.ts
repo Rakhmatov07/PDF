@@ -8,7 +8,7 @@ import { IRequest } from 'src/auth/user.type';
 export class FileSocketService {
   constructor(private prisma: PrismaService) {}
 
-  async mergePdfFiles(pdfPaths: string[], outputFilePath: string, fileName: Object, req: IRequest): Promise<any> {
+  async mergePdfFiles(pdfPaths: string[], outputFilePath: string, fileName: any, req: IRequest): Promise<any> {
     try{
       if (pdfPaths.length === 0) {
         throw new Error('No PDF files to merge.');

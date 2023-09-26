@@ -16,7 +16,6 @@ import { extname } from 'path';
           destination: './uploads',
           filename: (_, pdf, cb) => {
             const randomName = uuid();
-            
             cb(null, `${randomName}${extname(pdf.originalname)}`);
           },
         }),

@@ -1,84 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>File Upload Form</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <h1>File Upload Form</h1>
-    <div class="wrapper">
-      <form id="fileForm" class="form">
-        <input type="file" id="pdfInput" accept="application/pdf" required multiple />
-        <input type="text" id="fileName" placeholder="File Name" required />
-        <button type="submit">Submit</button><br>
-        <a href="./login.html">login</a>
-      </form>
-      <div class="response"></div>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Upload Form</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <h1>File Upload Form</h1>
+  <div class="wrapper">
+    <form id="fileForm" class="form">
+      <input type="file" id="pdfInput" accept="application/pdf" required multiple />
+      <input type="text" id="fileName" placeholder="File Name" required />
+      <button type="submit">Submit</button><br>
+      <a href="./login.html">login</a>
+    </form>
+    <div class="response"></div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("fileForm");
+      const responseContainer = document.querySelector(".response");
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("fileForm");
-        const responseContainer = document.querySelector(".response");
+      const socket = io.connect("ws://127.0.0.1:3000"); 
 
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-          const pdfInput = document.getElementById("pdfInput");
-          const fileNameInput = document.getElementById("fileName");
+        const pdfInput = document.getElementById("pdfInput");
+        const fileNameInput = document.getElementById("fileName");
 
-          if (!pdfInput.files.length || !fileNameInput.value) {
-            alert("Please select one or more PDF files and provide a name.");
-            return;
-          }
+        if (!pdfInput.files.length || !fileNameInput.value) {
+          alert("Please select one or more PDF files and provide a name.");
+          return;
+        }
 
-          const formData = new FormData();
-          for (const file of pdfInput.files) {
-            formData.append("pdfs", file);
-          }
-          formData.append("fileName", fileNameInput.value);
+        const formData = new FormData();
+        for (const file of pdfInput.files) {
+          formData.append("pdfs", file);
+        }
+        formData.append("fileName", fileNameInput.value);
+        socket.emit("uploadFile", formData);
 
-          try {
-            const response = await fetch("http://localhost:8000/api/pdf/merge", {
-              method: "POST",
-              body: formData,
-              redirect: "follow",
-            });
+        socket.on("uploadComplete", (result) => {
+          const card = document.createElement("div");
+          card.classList.add("card");
 
-            if (!response.ok) {
-              throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+          const fileLink = document.createElement("a");
+          fileLink.href = result.fileLink;
+          fileLink.setAttribute("download", "");
+          fileLink.innerHTML = `<img src="./download.png" alt="pdf" /> <p>${result.input_name}</p>`;
 
-              const result = await response.json();
-              const card = document.createElement("div");
-              card.classList.add("card");
+          const fileSize = document.createElement("p");
+          fileSize.innerHTML = result.file_size;
 
-              const fileLink = document.createElement("a");
-              fileLink.href = `../../${result.fileLink}`;
-              fileLink.setAttribute("download", ""); // This will prompt the user to download the file
-              fileLink.innerHTML = `<img src="./download.png" alt="pdf" /> <p>${result.input_name}</p>`;
+          const pageCount = document.createElement("p");
+          pageCount.innerHTML = `${result.page_count} pages`;
 
-              const fileSize = document.createElement("p");
-              fileSize.innerHTML = result.file_size;
+          card.appendChild(fileLink);
+          card.appendChild(fileSize);
+          card.appendChild(pageCount);
 
-              const pageCount = document.createElement("p");
-              pageCount.innerHTML = `${result.page_count} pages`;
+          responseContainer.appendChild(card);
 
-              card.appendChild(fileLink);
-              card.appendChild(fileSize);
-              card.appendChild(pageCount);
-
-              responseContainer.appendChild(card);
-
-            pdfInput.value = "";
-            fileNameInput.value = "";
-          } catch (error) {
-            console.error("Error:", error);
-          }
+          pdfInput.value = "";
+          fileNameInput.value = "";
         });
+
+        return () => {
+          socket.off('uploadComplete')
+        }
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>

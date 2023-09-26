@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: '*' });
+  app.enableCors({ origin: '*', credentials: true });
 
   const config = new DocumentBuilder()
   .setTitle('PDF')
