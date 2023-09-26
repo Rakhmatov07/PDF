@@ -15,7 +15,9 @@ export class AuthService {
 
       const hashedPass = await argon.hash(password);
       const newUser = await this.prisma.user.create({ data: { email, password: hashedPass } });
-      return this.generateToken(newUser.id); 
+      const token = this.generateToken(newUser.id);
+
+      return { token }; 
     } catch (error) {
       throw new InternalServerErrorException(error)
     }

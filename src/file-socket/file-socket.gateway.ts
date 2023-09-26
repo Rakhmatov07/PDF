@@ -7,11 +7,8 @@ import { v4 as uuid } from 'uuid';
 import { FileSocketService } from './file-socket.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { IRequest } from 'src/auth/user.type';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @WebSocketGateway()
-@ApiTags('Pdf')
-@ApiBearerAuth()
 @UseGuards(AuthGuard)
 export class FileSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly fileService: FileSocketService) {}
